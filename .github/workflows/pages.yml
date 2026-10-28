@@ -1,0 +1,80 @@
+# Builds the static demo and publishes it to GitHub Pages.
+#
+# The demo data is kept in a separate repository and copied into public/data
+# at build time, so it is served from the same origin but never committed here.
+# It defaults to BenPowley/ForestVis-demo-data; set the repository variable
+# DATA_REPO (owner/name) to use another one, and if that is private, also add
+# a DATA_REPO_TOKEN secret with read access.
+name: Deploy demo to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check out demo data
+        uses: actions/checkout@v4
+        with:
+          # An empty repository would check out this repo instead, so always name one
+          repository: ${{ vars.DATA_REPO || 'BenPowley/ForestVis-demo-data' }}
+          token: ${{ secrets.DATA_REPO_TOKEN || github.token }}
+          path: demo-data
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # The patched Giro3D build (setup-patched-giro3d.js) is slow; reuse it
+      # while the patch and the pinned version are unchanged.
+      - name: Cache patched Giro3D
+        uses: actions/cache@v4
+        with:
+          path: giro3d
+          key: giro3d-build-${{ hashFiles('setup-patched-giro3d.js', 'giropatch/filter.ts') }}
+
+      # A restored giro3d/node_modules comes from Giro3D's own lockfile and
+      # clashes with the one npm ci installs from package-lock.json (esbuild
+      # version mismatch), so keep only the clone and build output.
+      - name: Install
+        run: |
+          rm -rf giro3d/node_modules
+          npm ci
+
+      - name: Add demo data
+        run: |
+          mkdir -p public/data
+          rsync -a --exclude .git --exclude README.md demo-data/ public/data/
+          test -f public/data/aoi-config.json || { echo "::error::public/data/aoi-config.json is missing; is DATA_REPO the data repository?"; exit 1; }
+
+      - name: Build
+        run: npm run build
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

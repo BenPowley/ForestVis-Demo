@@ -1,0 +1,691 @@
+/*
+ * Copyright (c) 2026 Benjamin T. Powley, Petra Horváth, Claudio D. G. Linhares
+ * Licensed under the MIT License; see LICENSE.txt in the project root.
+ * SPDX-License-Identifier: MIT
+ */
+
+/* ============================================================================
+   polish.css — "interface polish" design-system overlay for Forest3D.
+   Restyles the existing Bootstrap DOM (no markup/ID/JS changes) to match the
+   design mockup served at /polish. Loaded AFTER example.css so it overrides.
+   Design tokens taken verbatim from polish/index.html (the dc mockup).
+   ============================================================================ */
+
+:root {
+  --f3-accent: #2f6db0;
+  --f3-accent-soft: rgba(47, 109, 176, 0.13);
+  --f3-panel-bg: rgba(251, 252, 253, 0.92);
+  --f3-panel-blur: blur(14px) saturate(1.08);
+  --f3-panel-border: 1px solid rgba(225, 229, 234, 0.85);
+  --f3-panel-shadow: 0 14px 38px -16px rgba(8, 16, 24, 0.5), 0 2px 8px -2px rgba(8, 16, 24, 0.22);
+  --f3-card-bg: #f6f7f9;
+  --f3-card-border: #edeff2;
+  --f3-ink: #2b3440;
+  --f3-ink-strong: #1d2530;
+  --f3-ink-muted: #5a6573;
+  --f3-ink-faint: #9aa3ae;
+  --f3-line: #e3e7ec;
+  --f3-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --f3-sans: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+}
+
+/* ---- Typography base on the floating panels ------------------------------ */
+#toggleOptions,
+#tabControlsPanel,
+#minimapControlsPanel {
+  font-family: var(--f3-sans);
+  color: var(--f3-ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ============================================================================
+   PANEL CHROME — glassmorphic floating cards
+   ============================================================================ */
+#toggleOptions,
+#tabControlsPanel,
+#minimapControlsPanel {
+  background: var(--f3-panel-bg) !important;
+  -webkit-backdrop-filter: var(--f3-panel-blur);
+  backdrop-filter: var(--f3-panel-blur);
+  border: var(--f3-panel-border) !important;
+  border-radius: 16px !important;
+  box-shadow: var(--f3-panel-shadow) !important;
+}
+
+/* The settings panel sits flush against its bookmark tab; keep that join but
+   round the outer corners so it reads as a soft card. */
+#toggleOptions {
+  border-radius: 16px !important;
+  padding: 16px 16px 16px 30px;
+}
+#minimapControlsPanel {
+  padding: 6px 14px 14px;
+}
+#tabControlsPanel {
+  padding: 6px 16px 16px;
+}
+
+/* ---- Bookmark / toggle tabs: subtle rounded glass ------------------------ */
+#toggleOptionsTab,
+#tabControlsTab,
+#minimapPanelTab {
+  background: var(--f3-panel-bg) !important;
+  -webkit-backdrop-filter: var(--f3-panel-blur);
+  backdrop-filter: var(--f3-panel-blur);
+  border: var(--f3-panel-border) !important;
+  box-shadow: var(--f3-panel-shadow) !important;
+  color: var(--f3-ink-muted);
+}
+#toggleOptionsTab:hover,
+#tabControlsTab:hover,
+#minimapPanelTab:hover {
+  background: #fff !important;
+}
+#toggleOptionsTab .bi,
+#tabControlsTab .bi,
+#minimapPanelTab .bi {
+  color: var(--f3-accent);
+}
+
+/* ============================================================================
+   HEADINGS & LABELS
+   ============================================================================ */
+#toggleOptions h5 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--f3-ink-strong);
+  letter-spacing: 0.01em;
+}
+
+/* Uppercase eyebrow labels (Color Mode, Filter Attribute, etc.) */
+#toggleOptions .form-label,
+#tabControlsPanel .form-label,
+#minimapControlsPanel .form-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--f3-ink-faint);
+  margin-bottom: 7px;
+}
+
+/* ============================================================================
+   ACCORDION SECTION HEADERS (.list-group-item) + chevron
+   ============================================================================ */
+#toggleOptions .list-group,
+#minimapControlsPanel .list-group {
+  gap: 0;
+  display: flex;
+  flex-direction: column;
+  border-radius: 0;
+}
+#toggleOptions .list-group-item,
+#minimapControlsPanel .list-group-item,
+#minimapPanelContent > .list-group-item {
+  background: var(--f3-card-bg);
+  border: 1px solid var(--f3-card-border) !important;
+  border-radius: 12px 12px 0 0 !important;
+  color: #3a434f;
+  font-size: 12.5px;
+  font-weight: 600;
+  font-style: normal; /* labels nested inside <i> would otherwise render italic */
+  padding: 12px 13px;
+  display: flex;
+  align-items: center;
+}
+/* Space BETWEEN sections (a header that follows a collapse body), so each
+   header stays joined to its own body but sections are separated. */
+#toggleOptions .collapse + .list-group-item,
+#minimapControlsPanel .collapse + .list-group-item,
+#minimapPanelContent > .collapse + .list-group-item {
+  margin-top: 11px;
+}
+#toggleOptions .list-group-item:hover,
+#minimapControlsPanel .list-group-item:hover,
+#minimapPanelContent > .list-group-item:hover {
+  background: #eef1f4;
+  color: var(--f3-ink-strong);
+}
+/* When a section is collapsed, the header has fully rounded corners */
+#toggleOptions .list-group-item.collapsed,
+#minimapControlsPanel .list-group-item.collapsed,
+#minimapPanelContent > .list-group-item.collapsed {
+  border-radius: 12px !important;
+}
+
+/* The minimap headers nest their label text inside the <i> chevron element,
+   whose UA default font-style:italic would slant it. Reset on the <i> itself. */
+#toggleOptions .list-group-item .bi,
+#minimapControlsPanel .list-group-item .bi,
+#minimapPanelContent > .list-group-item .bi {
+  font-style: normal;
+}
+
+/* Rotate only the chevron glyph (not any sibling text) on expand */
+#toggleOptions .list-group-item .bi::before,
+#minimapControlsPanel .list-group-item .bi::before,
+#minimapPanelContent > .list-group-item .bi::before {
+  display: inline-block;
+  transition: transform 0.15s ease;
+  color: var(--f3-ink-faint);
+}
+#toggleOptions .list-group-item[aria-expanded="true"] .bi::before,
+#minimapControlsPanel .list-group-item[aria-expanded="true"] .bi::before,
+#minimapPanelContent > .list-group-item[aria-expanded="true"] .bi::before {
+  transform: rotate(90deg);
+}
+
+/* Section body card */
+#toggleOptions .card.card-body,
+#minimapControlsPanel .card.card-body {
+  background: var(--f3-card-bg);
+  border: 1px solid var(--f3-card-border);
+  border-top: 0;
+  border-radius: 0 0 12px 12px;
+  padding: 4px 14px 15px;
+}
+/* Minimap legend/controls bodies are plain .collapse (not .card.card-body);
+   give them the same joined-card look. */
+#minimapPanelContent > .collapse {
+  background: var(--f3-card-bg);
+  border: 1px solid var(--f3-card-border);
+  border-top: 0;
+  border-radius: 0 0 12px 12px;
+}
+#minimap-legend-section .row,
+#minimapControls {
+  background: var(--f3-card-bg) !important;
+  padding: 6px 14px 14px;
+  margin: 0;
+}
+
+/* ============================================================================
+   RANGE SLIDERS  (.form-range -> .f3-range look)
+   ============================================================================ */
+#toggleOptions .form-range,
+#tabControlsPanel .form-range,
+#minimapControlsPanel .form-range {
+  height: 16px;
+  padding: 0;
+}
+#toggleOptions .form-range::-webkit-slider-runnable-track,
+#tabControlsPanel .form-range::-webkit-slider-runnable-track,
+#minimapControlsPanel .form-range::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--f3-line);
+}
+#toggleOptions .form-range::-moz-range-track,
+#tabControlsPanel .form-range::-moz-range-track,
+#minimapControlsPanel .form-range::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--f3-line);
+}
+#toggleOptions .form-range::-webkit-slider-thumb,
+#tabControlsPanel .form-range::-webkit-slider-thumb,
+#minimapControlsPanel .form-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 15px;
+  height: 15px;
+  margin-top: -5.5px;
+  border-radius: 50%;
+  background: var(--f3-accent);
+  border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgba(20, 40, 70, 0.35);
+  transition: transform 0.12s;
+}
+#toggleOptions .form-range::-webkit-slider-thumb:hover,
+#tabControlsPanel .form-range::-webkit-slider-thumb:hover,
+#minimapControlsPanel .form-range::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+#toggleOptions .form-range::-moz-range-thumb,
+#tabControlsPanel .form-range::-moz-range-thumb,
+#minimapControlsPanel .form-range::-moz-range-thumb {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--f3-accent);
+  border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgba(20, 40, 70, 0.35);
+}
+
+/* ============================================================================
+   VALUE CHIPS  (.badge.bg-secondary -> mono pill)
+   ============================================================================ */
+#toggleOptions .badge,
+#tabControlsPanel .badge,
+#minimapControlsPanel .badge {
+  background: #fff !important;
+  color: var(--f3-ink-strong) !important;
+  border: 1px solid var(--f3-line);
+  border-radius: 7px;
+  font-family: var(--f3-mono);
+  font-weight: 500;
+  font-size: 11.5px;
+  padding: 3px 8px;
+  min-width: 34px;
+}
+
+/* ============================================================================
+   CHECKBOXES & SWITCHES
+   ============================================================================ */
+/* Plain checkboxes -> 18px rounded box, accent when checked */
+#toggleOptions .form-check-input:not([role="switch"]),
+#tabControlsPanel .form-check-input:not([role="switch"]),
+#minimapControlsPanel .form-check-input:not([role="switch"]) {
+  width: 18px;
+  height: 18px;
+  margin-top: 0.15em;
+  border-radius: 5px;
+  border: 1.5px solid #ccd2d9;
+  background-color: #fff;
+  cursor: pointer;
+  transition: background-color 0.12s, border-color 0.12s;
+}
+#toggleOptions .form-check-input:not([role="switch"]):checked,
+#tabControlsPanel .form-check-input:not([role="switch"]):checked,
+#minimapControlsPanel .form-check-input:not([role="switch"]):checked {
+  background-color: var(--f3-accent);
+  border-color: var(--f3-accent);
+}
+#toggleOptions .form-check-input:focus,
+#tabControlsPanel .form-check-input:focus,
+#minimapControlsPanel .form-check-input:focus {
+  box-shadow: 0 0 0 4px rgba(47, 109, 176, 0.22);
+  border-color: var(--f3-accent);
+}
+/* Switches -> 40x22 pill */
+#toggleOptions .form-switch .form-check-input,
+#tabControlsPanel .form-switch .form-check-input,
+#minimapControlsPanel .form-switch .form-check-input {
+  width: 40px;
+  height: 22px;
+  border-radius: 999px;
+  border: 0;
+  background-color: #ccd2d9;
+  cursor: pointer;
+}
+#toggleOptions .form-switch .form-check-input:checked,
+#tabControlsPanel .form-switch .form-check-input:checked,
+#minimapControlsPanel .form-switch .form-check-input:checked {
+  background-color: var(--f3-accent);
+}
+/* Check / switch labels */
+#toggleOptions .form-check-label,
+#tabControlsPanel .form-check-label,
+#minimapControlsPanel .form-check-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--f3-ink);
+  padding-left: 2px;
+}
+
+/* ============================================================================
+   SELECTS
+   ============================================================================ */
+#toggleOptions .form-select,
+#tabControlsPanel .form-select,
+#minimapControlsPanel .form-select {
+  background-color: #fff;
+  border: 1px solid var(--f3-line);
+  border-radius: 9px;
+  padding: 9px 34px 9px 12px;
+  font-size: 13px;
+  font-family: var(--f3-sans);
+  color: var(--f3-ink);
+}
+#toggleOptions .form-select:focus,
+#tabControlsPanel .form-select:focus,
+#minimapControlsPanel .form-select:focus {
+  border-color: var(--f3-accent);
+  box-shadow: 0 0 0 4px rgba(47, 109, 176, 0.18);
+}
+
+/* ============================================================================
+   BUTTONS
+   ============================================================================ */
+/* Sync Zoom Level -> accent-filled pill */
+#syncCameraHeightBtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 0;
+  background: var(--f3-accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 5px 14px -5px var(--f3-accent);
+}
+#syncCameraHeightBtn:hover,
+#syncCameraHeightBtn:focus {
+  background: #2a619c;
+  color: #fff;
+}
+
+/* UMAP "Settings" + generic outline buttons inside panels */
+#tabControlsPanel .btn-outline-primary,
+#tabControlsPanel .btn-outline-secondary {
+  border-radius: 8px;
+  border: 1px solid var(--f3-line);
+  background: #fff;
+  color: var(--f3-accent);
+  font-size: 12.5px;
+  font-weight: 500;
+}
+#tabControlsPanel .btn-outline-primary:hover,
+#tabControlsPanel .btn-outline-secondary:hover {
+  background: var(--f3-accent-soft);
+  color: var(--f3-accent);
+  border-color: var(--f3-accent);
+}
+
+/* ============================================================================
+   TABS  (.nav-tabs -> underline tabs)
+   ============================================================================ */
+#tabControlsPanel .nav-tabs {
+  /* Stay pinned to the top of the panel while its content scrolls. Negative
+     side/top margins + matching padding let the bar span the panel's full
+     width and cover the panel's top padding. */
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  margin: -6px -16px 0;
+  padding: 6px 16px 0;
+  background: rgba(251, 252, 253, 0.97);
+  -webkit-backdrop-filter: var(--f3-panel-blur);
+  backdrop-filter: var(--f3-panel-blur);
+  border-bottom: 1px solid var(--f3-card-border);
+  gap: 22px;
+}
+#tabControlsPanel .nav-tabs .nav-link {
+  border: 0;
+  background: transparent;
+  color: #8b95a1;
+  font-weight: 500;
+  font-size: 13.5px;
+  padding: 12px 2px;
+  margin-bottom: -1px;
+}
+#tabControlsPanel .nav-tabs .nav-link:hover {
+  color: var(--f3-ink);
+}
+#tabControlsPanel .nav-tabs .nav-link.active {
+  color: var(--f3-accent);
+  font-weight: 600;
+  background: transparent;
+  border-bottom: 2px solid var(--f3-accent);
+}
+
+/* ============================================================================
+   MINIMAP + LEGEND polish
+   ============================================================================ */
+#minimap {
+  border: 1px solid #d7ddd0;
+  border-radius: 11px;
+}
+#minimapPanelContent .text-muted,
+#tabControlsPanel .text-muted {
+  color: #7a838e !important;
+}
+
+/* Tooltip to match the dark glass of the rest of the design */
+.custom-tooltip {
+  background: rgba(20, 28, 38, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  font-family: var(--f3-sans);
+}
+
+/* ============================================================================
+   LAYOUT FIXES (pass 2)
+   ============================================================================ */
+
+/* The main page must never scroll — all UI floats over the full-screen #view
+   canvas. Without this, interacting can grow body height and reveal a white
+   strip below the map. */
+html,
+body {
+  overflow: hidden !important;
+  height: 100%;
+}
+
+/* Hide scroll chrome on the settings + minimap panels (still scrollable if
+   ever needed, but no visible scrollbar). */
+#toggleOptions,
+#minimapControlsPanel {
+  scrollbar-width: none;          /* Firefox */
+  -ms-overflow-style: none;       /* old Edge */
+}
+#toggleOptions::-webkit-scrollbar,
+#minimapControlsPanel::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+/* The minimap panel also has a resize handle from example.css; drop it so the
+   panel stays clean. */
+#minimapControlsPanel {
+  resize: none;
+}
+
+/* ---- UMAP tab: keep content within the panel width ----------------------- */
+/* Confine the right analytics panel so wide children can't push a horizontal
+   page/panel scrollbar. */
+#tabControlsPanel {
+  overflow-x: hidden;
+}
+#umap-panel,
+#umap-visualization,
+#umap-container,
+#umap-viz-container,
+#umap-bars-section {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+/* The Indices chart SVG is intrinsically very wide (one group per attribute);
+   let it scroll horizontally *inside its own box* rather than breaking the
+   whole panel. Pointcloud chart likewise. */
+#umap-indices-bars-panel,
+#umap-pointcloud-bars-panel {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+/* Thin scrollbar for those inner chart boxes, matching the design. */
+#umap-indices-bars-panel::-webkit-scrollbar,
+#umap-pointcloud-bars-panel::-webkit-scrollbar {
+  height: 7px;
+}
+#umap-indices-bars-panel::-webkit-scrollbar-thumb,
+#umap-pointcloud-bars-panel::-webkit-scrollbar-thumb {
+  background: #cdd3da;
+  border-radius: 999px;
+}
+/* Compact Max/Min/Avg… filter buttons so they fit one row and leave room for the UMAP. */
+#umap-indices-filter-row .umap-indices-filter-btn {
+  padding: 2px 8px;
+  font-size: 0.8rem;
+}
+/* Bottom controls (Color By / Point Size) wrap instead of overflowing. */
+#umap-bottom-controls {
+  flex-wrap: wrap;
+}
+
+/* Tree Attribute UMAP scatter: no horizontal scrollbar (the inline
+   overflow:auto set in JS needs !important to beat it). */
+#umap-viz-container {
+  overflow-x: hidden !important;
+}
+
+/* Indices + Pointcloud bar charts: equal-width columns, equal height, so the
+   two charts read as the same size (the wide Indices SVG scrolls inside its
+   own half). */
+#umap-bars-section .flex-row > .flex-column {
+  flex: 1 1 0 !important;
+  max-width: 50% !important;
+  min-width: 0 !important;
+}
+#umap-indices-bars-panel,
+#umap-pointcloud-bars-panel {
+  max-height: 250px;
+  overflow-y: hidden;
+}
+
+/* ---- Filter histogram fills the Filter-tab box width ---------------------- */
+#histogram-div {
+  width: 100%;
+  overflow-x: hidden;
+}
+#histogram-div svg {
+  max-width: 100%;
+}
+
+/* ============================================================================
+   SETTINGS HEADER — ForestVis name + Attsjö location
+   ============================================================================ */
+.forestvis-title {
+  text-align: center;
+  line-height: 1.15;
+}
+.forestvis-title .fv-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--f3-ink-strong);
+  letter-spacing: 0.01em;
+}
+.forestvis-title .fv-location {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--f3-ink-faint);
+  margin-top: 2px;
+}
+
+/* ============================================================================
+   LOADING OVERLAY — covers the screen until the 3D point cloud has rendered
+   ============================================================================ */
+#loadingOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 4000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--f3-sans);
+  /* Dark forest gradient, matching the design mockup backdrop */
+  background: radial-gradient(125% 95% at 50% -12%, #35492f 0%, #1f2b1c 42%, #0c120b 100%);
+  transition: opacity 0.5s ease;
+}
+#loadingOverlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle at 1px 1px, rgba(150, 180, 110, 0.10) 1px, transparent 1.7px);
+  background-size: 7px 7px;
+  pointer-events: none;
+}
+#loadingOverlay.hidden-fade {
+  opacity: 0;
+  pointer-events: none;
+}
+.loader-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 13px;
+}
+.loader-spinner {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 4px solid rgba(255, 255, 255, 0.16);
+  border-top-color: #6ece58;
+  animation: fv-spin 0.9s linear infinite;
+}
+@keyframes fv-spin {
+  to { transform: rotate(360deg); }
+}
+.loader-title {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #fff;
+}
+.loader-sub {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.62);
+  font-family: var(--f3-mono);
+  letter-spacing: 0.02em;
+}
+.loader-bar {
+  width: 240px;
+  height: 12px;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 6px;
+  position: relative;
+  /* Faint chevron arrows flow across the WHOLE track (even the unfilled part),
+     so the bar always reads as "data streaming in". */
+  background-color: rgba(255, 255, 255, 0.10);
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='16'%20height='12'%3E%3Cpath%20d='M3%203L8%206L3%209'%20fill='none'%20stroke='%23ffffff'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%20opacity='0.28'/%3E%3C/svg%3E");
+  background-repeat: repeat-x;
+  background-position: 0 center;
+  background-size: 16px 12px;
+  animation: fv-chev-track 0.55s linear infinite;
+}
+@keyframes fv-chev-track {
+  from { background-position: 0 center; }
+  to   { background-position: 16px center; }
+}
+.loader-bar-fill {
+  height: 100%;
+  width: 8%;
+  border-radius: 999px;
+  /* Layer 1 (top): bright chevron arrows streaming to the right.
+     Layer 2 (bottom): the solid green progress gradient (stays put). */
+  background-color: #35b779;
+  background-image:
+    url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='16'%20height='12'%3E%3Cpath%20d='M3%203L8%206L3%209'%20fill='none'%20stroke='%23ffffff'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%20opacity='0.9'/%3E%3C/svg%3E"),
+    linear-gradient(90deg, #2ea36b, #6ece58);
+  background-repeat: repeat-x, no-repeat;
+  background-position: 0 center, 0 0;
+  background-size: 16px 12px, 100% 100%;
+  box-shadow: 0 0 10px rgba(110, 206, 88, 0.7); /* leading-edge glow */
+  transition: width 0.25s ease;
+  animation: fv-chev-fill 0.55s linear infinite;
+}
+/* Only the chevron layer scrolls; the green gradient stays fixed. */
+@keyframes fv-chev-fill {
+  from { background-position: 0 center, 0 0; }
+  to   { background-position: 16px center, 0 0; }
+}
+/* A soft highlight also sweeps the whole bar, adding extra life. */
+.loader-bar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 40%;
+  border-radius: 999px;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.30) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: translateX(-130%);
+  animation: fv-bar-sweep 1.5s ease-in-out infinite;
+}
+@keyframes fv-bar-sweep {
+  0%   { transform: translateX(-130%); }
+  100% { transform: translateX(330%); }
+}

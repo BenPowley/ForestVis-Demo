@@ -1,0 +1,229 @@
+{
+   "colorscales": {
+      "ndviPalette": {
+         "type" : "palette",
+         "bounds": [
+        { "index": -1.0, "hex": "#A6611A", "rgb": [166, 97, 26] },
+        { "index": 0.1666, "hex": "#D1AA65", "rgb":[209, 170, 101] },
+        { "index": 0.3333, "hex": "#EADCBB", "rgb":[234, 220, 187] },
+        { "index": 0.4999, "hex": "#EADCBB", "rgb":[234, 220, 187] },
+        { "index": 0.6666, "hex": "#B5DFD9", "rgb":[181, 223, 217] },
+        { "index": 0.8333, "hex": "#018571", "rgb":[1, 133, 113] }
+      ]
+      },
+      "elevation":  {
+         "type": "gradient",
+         "palette": "Viridis"
+      },
+      "predInstancePalette": {
+        "type": "qml",
+        "file": "./data/teak/color_categorization.qml"
+      }
+   },
+  "attributes": {
+    "Height": {
+      "label": "Height (m)",
+      "decimals": 2,
+      "scale" : "elevation",
+      "range": {
+        "min": 0,
+        "max": 100
+      },
+      "defaultFilterRange": {
+        "min": -10000,
+        "max": 100
+      },
+      "colorMode": "attribute",
+      "colorMapMin": 0,
+      "colorMapMax": 50
+    },
+    "PredInstance": {
+      "label": "PredInstance",
+      "decimals": 0,
+      "scale" : "predInstancePalette",
+      "range": {
+        "min": 0,
+        "max": 10000,
+        "numInstances": 10000
+      },
+      "colorMode": "attribute",
+      "colorMapMin": 0,
+      "colorMapMax": null
+    },
+    "Color": {
+      "label": "RGB",
+      "colorMode": "rgb",
+      "pointCloudOnly": true
+    },
+    "GNDVI": {
+      "label": "GNDVI",
+      "decimals": 5,
+      "scale" : "ndviPalette",
+      "range": {
+        "min": 0,
+        "max": 1
+      },
+      "colorMode": "attribute",
+      "colorMapMin": 0,
+      "colorMapMax": 1,
+      "pointCloudOnly": true
+    },
+    "AvgGNDVI": {
+      "label": "GNDVI Mean",
+      "decimals": 5,
+      "scale" : "ndviPalette", 
+      "range": {
+        "min": -1,
+        "max": 1
+      },
+      "defaultFilterRange": {
+        "min": -10000,
+        "max": 1
+      },
+      "colorMode": "attribute",
+      "colorMapMin": 0,
+      "colorMapMax": 1
+    },
+    "LCI": {
+      "label": "LCI",
+      "decimals": 5,
+      "scale" : "ndviPalette",
+      "range": {
+        "min": 0,
+        "max": 1
+      },
+      "colorMode": "attribute",
+      "colorMapMin": 0,
+      "colorMapMax": 1,
+      "pointCloudOnly": true
+    },
+    "AvgLCI": {
+      "label": "LCI Mean",
+      "decimals": 5,
+      "scale" : "ndviPalette", 
+      "range": {
+        "min": -1,
+        "max": 1
+      },
+      "defaultFilterRange": {
+        "min": -10000,
+        "max": 1
+      },
+      "colorMode": "attribute",
+      "colorMapMin": 0,
+      "colorMapMax": 1
+    },
+    "NDRE": {
+      "label": "NDRE",
+      "decimals": 5,
+      "scale" : "ndviPalette",
+      "range": {
+        "min": 0,
+        "max": 1
+      },
+      "colorMode": "attribute",
+      "colorMapMin": 0,
+      "colorMapMax": 1,
+      "pointCloudOnly": true
+    },
+    "AvgNDRE": {
+      "label": "NDRE Mean",
+      "decimals": 5,
+      "scale" : "ndviPalette", 
+      "range": {
+        "min": -1,
+        "max": 1
+      },
+      "defaultFilterRange": {
+        "min": -10000,
+        "max": 1
+      },
+      "colorMode": "attribute",
+      "colorMapMin": 0,
+      "colorMapMax": 1
+    },
+    "NDVI": {
+      "label": "NDVI",
+      "decimals": 5,
+      "scale" : "ndviPalette",
+      "range": {
+        "min": 0,
+        "max": 1
+      },
+      "colorMode": "attribute",
+      "colorMapMin": 0,
+      "colorMapMax": 1,
+      "pointCloudOnly": true
+    },
+    "AvgNDVI": {
+      "label": "NDVI Mean",
+      "decimals": 5,
+      "scale" : "ndviPalette", 
+      "range": {
+        "min": -1,
+        "max": 1
+      },
+      "defaultFilterRange": {
+        "min": -10000,
+        "max": 1
+      },
+      "colorMode": "attribute",
+      "colorMapMin": 0,
+      "colorMapMax": 1
+    },
+    "OSAVI": {
+      "label": "OSAVI",
+      "decimals": 5,
+      "scale" : "ndviPalette",
+      "range": {
+        "min": 0,
+        "max": 1
+      },
+      "colorMode": "attribute",
+      "colorMapMin": 0,
+      "colorMapMax": 1,
+      "pointCloudOnly": true
+    },
+     "AvgOSAVI": {
+      "label": "OSAVI Mean",
+      "decimals": 5,
+      "scale" : "ndviPalette", 
+      "range": {
+        "min": -1,
+        "max": 1
+      },
+      "defaultFilterRange": {
+        "min": -10000,
+        "max": 1
+      },
+      "colorMode": "attribute",
+      "colorMapMin": 0,
+      "colorMapMax": 1
+    },
+    "Elevation": {
+      "label": "Elevation",
+      "colorMode": "attribute",
+      "attributeName": "Z",
+      "useAutoRange": true,
+      "autoRangeBboxProperty": "z",
+      "colorMapMin": null,
+      "colorMapMax": null,
+      "scale": "elevation",
+      "pointCloudOnly": true
+    }
+  },
+  "renderingPanel": {
+    "defaultColorMode": "NDVI",
+    "svgExportLayout": "figure",
+    "mainPointSize": 2.0,
+    "mainOpacity": 1.0,
+    "basePointSize": 1.0,
+    "baseOpacity": 0.4,
+    "subdivisionThreshold": 1.0,
+    "baseSubdivisionThreshold": 4.0,
+    "pointBudget": 10000000,
+    "enableEDL": true,
+    "enableInpainting": false,
+    "enablePointCloudOcclusion": false
+  }
+}

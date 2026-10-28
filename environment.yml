@@ -1,0 +1,36 @@
+name: pdal-point-cloud-scripts
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.12
+  - numpy
+  - pandas
+  - umap-learn
+  - fiona
+  - shapely
+  - gdal
+  - pyproj
+  - scikit-learn
+  - h5py
+  - pip
+  - pip:
+      - geojson
+      - laspy
+      - laszip
+      - rasterio
+      - click
+      - click-plugins
+      - cligj
+      - tqdm
+      - python-pdal
+      - numba
+      - joblib
+      - matplotlib
+      - affine
+      - circle-fit
+      - colorama
+      - fonttools
+      - packaging
+      - python-dateutil
+      - pytz

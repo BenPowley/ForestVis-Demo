@@ -1,0 +1,45 @@
+node_modules
+key.pem
+cert.pem
+.env
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
+
+# Build output
+/dist/
+/dist.bench-bak/
+/dist-demo/
+/giropatch/filter.js
+/giropatch/filter.d.ts
+__pycache__/
+
+# Output: benchmark results, logs, browser profiles (kept outside the repo)
+/bench_*.txt
+/netbench_run.txt
+/mem_bench_*.json
+/server_*.log
+/logs/
+/chromelogs/
+/study-logs/
+/membench-profile/
+/commits.txt
+/chatlogs/
+/2026-*.txt
+
+# Data: point clouds, rasters, geojson layers (kept outside the repo)
+/pointclouds/
+/layer/
+/layer2/
+/layer2-large/
+/old/
+# Demo data lives in its own repo; copied (CI) or linked (local dev) here
+/public/data
+
+# Separate repositories
+/giro3d/
+/IEEE_VR_2027_View_recommendation/

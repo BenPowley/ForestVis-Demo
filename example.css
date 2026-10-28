@@ -1,0 +1,717 @@
+/*
+ * Copyright (c) 2026 Benjamin T. Powley, Petra Horváth, Claudio D. G. Linhares
+ * Licensed under the MIT License; see LICENSE.txt in the project root.
+ * SPDX-License-Identifier: MIT
+ */
+
+/*
+ * This stylesheet is adapted, with modification and additional custom rules,
+ * from the Giro3D v0.43.5 example stylesheet:
+ * https://gitlab.com/giro3d/giro3d/-/blob/v0.43.5/examples/css/example.css
+ * Copyright (c) 2020-2024 Giro3D contributors.
+ * SPDX-License-Identifier: MIT (full text in THIRD_PARTY_LICENSES.txt)
+ */
+
+/* Legend grid for PredInstance (5 columns, scrollable after 4 rows) */
+.minimap-legend-instance-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+  max-height: 112px; /* 4 rows × 28px */
+  overflow-y: auto;
+  margin-top: 6px;
+}
+#minimapPanelContent {
+  padding-top: 32px;
+}
+#minimapControlsPanel.transparent-bg {
+  resize: none !important;
+  pointer-events: none;
+}
+#minimapPanelTab {
+  pointer-events: auto !important;
+}
+/* Transparent state for minimapControlsPanel when hidden */
+#minimapControlsPanel.transparent-bg {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  min-height: 28px;
+  height: 28px;
+  transition: background 0.2s, height 0.2s;
+}
+#minimapControlsPanel {
+  transition: background 0.2s, height 0.2s;
+}
+/* Top-center tab for minimapControlsPanel */
+#minimapPanelTab {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+  pointer-events: auto;
+  width: 38px;
+  height: 28px;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.13);
+  padding: 0;
+  margin: 0;
+  transition: background 0.15s;
+  z-index: 1002;
+}
+#minimapPanelTab:hover {
+  background: #e9ecef;
+}
+#minimapPanelTab .bi {
+  font-size: 1.2rem;
+  color: #444;
+}
+
+#minimapPanelContent.panel-hidden {
+  display: none;
+}
+/* Right-side tab for tabControlsPanel */
+#tabControlsTab {
+  position: absolute;
+  top: 10px;
+  right: 0;
+  pointer-events: auto;
+  width: 28px;
+  min-height: 80px;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-right: none;
+  border-radius: 6px 0 0 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: -2px 2px 6px rgba(0,0,0,0.18);
+  padding: 0;
+  margin-top: 0;
+  transition: background 0.15s;
+  z-index: 1002;
+}
+#tabControlsTab:hover {
+  background: #e9ecef;
+}
+#tabControlsTab .bi {
+  font-size: 1.1rem;
+  color: #444;
+}
+
+/* Hide tabControlsPanel when toggled */
+#tabControlsPanel.panel-hidden {
+  display: none;
+}
+.areas-annotation {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 2px;
+  margin-top: 2px;
+}
+
+.areas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  gap: 8px 8px;
+  margin-top: 2px;
+}
+
+.area-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 16px;
+  background: #f7f7f7;
+  border: 1.5px solid #ccc;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s, border 0.15s;
+  font-size: 0.85rem;
+  min-width: 0;
+}
+/* Active chips take their area's colour (--area-color, set per chip), matching the minimap outlines */
+.area-chip-selected {
+  background: #e0f7fa;
+  background: color-mix(in srgb, var(--area-color, #0097a7) 18%, white);
+  border-color: var(--area-color, #0097a7);
+}
+.area-chip-swatch {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1.5px solid #888;
+  margin-right: 2px;
+}
+.area-chip-label {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+#view {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#menuDiv {
+  position: absolute;
+  top: 0px;
+  margin-left: 0px;
+}
+
+@media (max-width: 600px) {
+  #menuDiv {
+    display: none;
+  }
+}
+
+.help {
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  left: 0;
+  color: #eee;
+  font:
+    11px 'Lucida Grande',
+    sans-serif;
+  line-height: normal;
+  text-shadow: 0 -1px 0 #111;
+  padding: 0 1rem;
+  background: #1a1a1a;
+  border: 1px solid #2c2c2c;
+  opacity: 0.8;
+}
+
+.help > p {
+  margin: 0.5rem 0;
+}
+
+.help > ul {
+  padding: 0 1rem;
+}
+
+pre {
+  margin-bottom: 0;
+  margin-top: 0;
+}
+
+@media (max-width: 600px) {
+  .help {
+    display: none;
+  }
+}
+
+.gui-init {
+  display: block;
+}
+
+/* Hide the GUI by default on mobile. It can be toggled on by the button. */
+@media (max-width: 600px) {
+  .gui-init {
+    display: none;
+  }
+}
+
+#btnFullscreen {
+  display: flex;
+}
+
+/* Hide the full-screen button on mobile. This is due to this feature not being 100% supported on all mobile platforms (i.e iOS). */
+@media (max-width: 600px) {
+  #btnFullscreen {
+    display: none;
+  }
+}
+
+.divScaleWidget {
+  border: 2px solid black;
+  border-top: none;
+  text-align: center;
+  display: block;
+  background-image: linear-gradient(rgba(200, 200, 200, 0.3), rgba(200, 200, 200, 0.3));
+  margin-bottom: 20px;
+  margin-right: 20px;
+  position: absolute;
+  width: 200px;
+  height: 18px;
+  color: black;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 16px;
+  right: 0;
+  bottom: 0;
+}
+
+.status-bar {
+  font-size: 0.8rem;
+  height: 1.3rem;
+  display: flex;
+}
+
+/* Hide the status bar on mobile. */
+@media (max-width: 600px) {
+  .status-bar {
+    display: none !important;
+  }
+}
+
+/* this right pane takes the whole height except the status bar. */
+.side-pane-with-status-bar {
+  margin: 0.5rem;
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  pointer-events: none;
+  overflow-y: auto;
+  bottom: 1.5rem; /* 1.3rem for status bar + 0.5 for bottom margin */
+  max-width: calc(100% - 4rem); /* To avoid masking the button area */
+}
+
+.side-pane-with-status-bar > .card {
+  max-height: 100%;
+}
+
+.side-pane-with-status-bar > .card .card-body {
+  overflow-y: auto;
+}
+
+.side-pane-with-status-bar > * {
+  pointer-events: auto;
+}
+
+.status-progress-bar {
+  width: 8rem;
+}
+
+.status-progress-value {
+  width: 2rem;
+}
+
+.memory-usage {
+  width: 15rem;
+}
+
+.status-attribution {
+  margin-left: 1rem;
+}
+
+.pulse-once {
+  animation: pulseanim 0.3s ease 1;
+}
+@keyframes pulseanim {
+  0% {
+    transform: scale(1);
+  }
+  80% {
+    transform: scale(1.5);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+
+.controls {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(26, 26, 26, 0.9);
+  border: 1px solid #2c2c2c;
+  border-radius: 5px;
+  padding: 10px;
+  color: #eee;
+  font-family: 'Lucida Grande', sans-serif;
+  font-size: 10px;
+  z-index: 1000;
+  min-width: 200px;
+}
+
+.controls label {
+  display: block;
+  margin-bottom: 3px;
+  color: #eee;
+  font-weight: bold;
+  font-size: 9px;
+}
+
+.controls select {
+  width: 100%;
+  padding: 3px;
+  margin-bottom: 8px;
+  background: #333;
+  color: #eee;
+  border: 1px solid #555;
+  border-radius: 3px;
+  font-size: 10px;
+}
+
+#minimap {
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 5px;
+  position: relative;
+  resize: vertical;
+  overflow: auto;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 2px solid white;
+  margin-bottom: 10px;
+}
+
+#minimap canvas {
+  border-radius: 3px;
+}
+
+.minimapControls {
+  background: white;
+  padding: 5px 10px;
+}
+
+#minimapControlsPanel {
+  top: 10px;
+  position: absolute;
+  left: calc(28px + 10px); /* default: tab(28px) + gap(10px); shifts further right when settings open */
+  width: 16%;
+  resize: horizontal;
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: calc(100vh - 20px);
+  max-width: 800px;
+  min-width: 200px;
+  user-select: none;
+  z-index: 1000;
+  transition: left 0.2s;
+}
+
+#tabControlsPanel {
+  top: 10px;
+  right: 10px;
+  position: absolute;
+  width: 25%;
+  resize: horizontal;
+  direction: ltr;
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: calc(100vh - 20px);
+  max-width: 800px;
+  min-width: 250px;
+  background: white;
+  padding: 10px 10px 10px 18px;
+  border-radius: 5px;
+  user-select: none;
+  z-index: 1000;
+}
+
+#infoContainer {
+  margin-bottom: 5px;
+  user-select: text;
+}
+
+#compass {
+  position: absolute;
+  top: 45px;
+  left: 25px;
+  height: 40px;
+  z-index: 1001;
+  user-select: none;
+}
+
+/* ── Toggle Options: left-edge sliding panel ── */
+/* ── Toggle Options: left-edge sliding panel ── */
+#toggleOptionsWrapper {
+  position: absolute;
+  top: 10px;
+  left: 0px; /* leave space for the tab button */
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  z-index: 1001;
+  pointer-events: none;
+}
+
+/* The bookmark tab is absolutely positioned on the left wall, not part of flex */
+#toggleOptionsTab {
+  position: absolute;
+  top: 10px;
+  left: 0;
+  pointer-events: auto;
+  width: 28px;
+  min-height: 80px;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-left: none;
+  border-radius: 0 6px 6px 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 2px 2px 6px rgba(0,0,0,0.18);
+  padding: 0;
+  margin-top: 0;
+  transition: background 0.15s;
+  z-index: 1002;
+}
+
+#toggleOptionsTab:hover {
+  background: #e9ecef;
+}
+
+#toggleOptionsTab .bi {
+  font-size: 1.1rem;
+  color: #444;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+
+/* The settings panel opens to the RIGHT of the tab */
+#toggleOptions {
+  pointer-events: auto;
+  order: 1;
+
+  width: 240px;
+  height: fit-content;
+  max-height: calc(100vh - 20px);
+  background: #fff;
+  border: 1px solid #ccc;
+  border-left: none;
+  border-radius: 0 6px 6px 0;
+  padding: 12px 10px 10px 28px;
+  box-shadow: 2px 2px 8px rgba(0,0,0,0.15);
+  overflow-y: auto;
+}
+
+#toggleOptions.panel-hidden {
+  display: none;
+}
+
+/* When the settings panel is open, push the minimap right */
+#minimapControlsPanel.settings-open {
+  left: calc(28px + 240px + 10px); /* tab(28) + panel(240) + gap(10) */
+}
+
+.minimap-legend {
+    display: flex;
+    flex-direction: column;
+    padding: 5px 10px;
+    gap: 8px;
+}
+
+.minimap-legend-description {
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 2px;
+}
+
+.minimap-legend-items {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+
+.minimap-legend-circles-row {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  align-items: flex-end;
+  justify-content: flex-start;
+}
+
+.minimap-legend-entry {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-width: 32px;
+}
+
+.minimap-legend-label {
+  font-size: 0.7rem;
+  text-align: center;
+  white-space: nowrap;
+  margin-top: 2px;
+  min-width: 24px;
+}
+
+.minimap-legend-counter {
+    font-size: 0.85rem;
+    margin-top: 4px;
+}
+
+.minimap-legend-square {
+  width: 18px;
+  height: 18px;
+  display: inline-block;
+  margin-right: 6px;
+  border-radius: 3px;
+  border: 1px solid #888;
+}
+
+.minimap-legend-squares-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.minimap-legend-circle {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1px solid #000;
+  flex-shrink: 0;
+}
+
+.minimap-legend-rect {
+  width: 90%;
+  height: 12px;
+  border-radius: 2px;
+  border: 1px solid #000;
+  flex-shrink: 0;
+}
+
+/* palette ruler layout */
+.minimap-legend-palette-wrapper {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: 0 4px;
+    box-sizing: border-box;
+}
+
+.minimap-legend-palette-circles {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.minimap-legend-palette-slot {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.minimap-legend-palette-ticks {
+    position: relative;
+    width: 100%;
+    height: 28px;
+    margin-top: 2px;
+    overflow: visible;
+}
+
+.minimap-legend-palette-tick {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transform: translateX(-50%);
+}
+
+.minimap-legend-palette-tick-mark {
+    width: 1px;
+    height: 5px;
+    background: #666;
+    flex-shrink: 0;
+}
+
+.minimap-legend-palette-tick-label {
+    font-size: 0.65rem;
+    color: #444;
+    white-space: nowrap;
+    line-height: 1.2;
+}
+
+.minimap-legend-gradient-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    width: 100%;
+    padding: 0 4px;
+    box-sizing: border-box;
+}
+
+.minimap-legend-gradient-bar {
+    width: 100%;
+    height: 14px;
+    border-radius: 3px;
+    border: 1px solid #ccc;
+    flex-shrink: 0;
+}
+
+.minimap-legend-gradient-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    color: #444;
+}
+
+.custom-tooltip {
+  position: absolute;
+  background: rgba(30, 30, 30, 0.9);
+  color: #fff;
+  font-family: sans-serif;
+  font-size: 12px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  pointer-events: none;
+  z-index: 1002;
+  max-width: 240px;
+}
+
+.custom-tooltip table {
+  border-collapse: collapse;
+}
+
+.custom-tooltip th {
+  text-align: left;
+  font-weight: 600;
+  padding-right: 6px;
+  opacity: 0.8;
+}
+
+.custom-tooltip td {
+  text-align: right;
+}
+
+.hidden {
+  display: none;
+}
+
+/* Details panel histogram styles */
+#details-histogram-container {
+  margin-top: 10px;
+  overflow-x: auto;
+}
+
+#point-details {
+  max-width: 100%;
+}
+
+#point-details .text-muted {
+  font-size: 0.9rem;
+  font-style: italic;
+}

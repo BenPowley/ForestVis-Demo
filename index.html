@@ -1,0 +1,585 @@
+<!doctype html>
+<!--
+  Copyright (c) 2026 Benjamin T. Powley, Petra Horváth, Claudio D. G. Linhares
+  Licensed under the MIT License; see LICENSE.txt in the project root.
+  SPDX-License-Identifier: MIT
+-->
+<!--
+  Portions of this page are adapted, with modification, from the Giro3D v0.43.5 examples:
+  https://gitlab.com/giro3d/giro3d/-/blob/v0.43.5/examples/lidar_hd.js
+  https://gitlab.com/giro3d/giro3d/-/blob/v0.43.5/examples/ol_vector.js
+  https://gitlab.com/giro3d/giro3d/-/blob/v0.43.5/examples/minimap.js
+  Copyright (c) 2020-2024 Giro3D contributors.
+  SPDX-License-Identifier: MIT (full text in THIRD_PARTY_LICENSES.txt)
+-->
+<html lang="en">
+  <head>
+    <title>ForestVis Demo: Lower Teakettle</title>
+    <meta charset="UTF-8" />
+    <meta name="name" content="lidar_hd" />
+    <meta
+      name="description"
+      content="Forest point cloud visualization of NEON's Lower Teakettle site"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Self-hosted (public/) so visitors' browsers make no third-party requests -->
+    <link rel="icon" href="/favicon.svg" />
+    <link
+      href="/vendor/bootstrap/bootstrap-custom.css"
+      rel="stylesheet"
+    />
+    <script src="/vendor/bootstrap/bootstrap.bundle.min.js"></script>
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="./example.css"
+    />
+    <!-- interface-polish design-system overlay (loaded last so it wins) -->
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="./polish.css"
+    />
+    <link rel="stylesheet" type="text/css" href="./demo.css" />
+  </head>
+
+  <body>
+    <!-- Loading overlay: shown from first paint until the 3D point cloud has
+         finished processing + rendering (controlled by setupLoadingOverlay in index.js). -->
+    <div id="loadingOverlay" aria-live="polite" role="status">
+      <div class="loader-content">
+        <div class="loader-spinner"></div>
+        <div class="loader-title">ForestVis</div>
+        <div class="loader-sub">Loading 3D point cloud…</div>
+        <div class="loader-bar"><div class="loader-bar-fill"></div></div>
+      </div>
+    </div>
+    <div id="view" class="m-0 p-0 w-100 h-100"></div>
+    <div id="tooltip" class="custom-tooltip hidden"></div>
+    
+    <!-- Top Left Panel: Minimap, Legend, and Controls -->
+    <div id="minimapControlsPanel" class="minimapControls">
+      <button id="minimapPanelTab" title="Show/hide minimap panel" aria-label="Toggle minimap panel">
+        <i class="bi bi-caret-down-fill"></i>
+      </button>
+      <div id="minimapPanelContent">
+        <img src="compass.svg" alt="" type="image/svg+xml" id="compass"></img>
+        <div id="minimap" class="w-100"></div>
+        <div class="mb-1 d-flex justify-content-start pe-1">
+          <button id="syncCameraHeightBtn"
+            class="btn btn-sm btn-outline-secondary"
+            title="Zoom sync OFF – click to enable">
+            <i class="bi bi-arrows-expand"></i> Sync Zoom Level
+          </button>
+        </div>
+        <button class="list-group-item list-group-item-action" type="button" data-bs-toggle="collapse"
+          data-bs-target="#minimap-legend-section" aria-expanded="true" aria-controls="minimap-legend-section">
+          <i id="minimap-panel-heading" class="bi bi-chevron-right me-2">Minimap Legend</i>
+        </button>
+        <div class="collapse show" id="minimap-legend-section">
+          <div class="row g-2 p-2">
+            <div class="mb-2">
+              <div class="minimap-legend" id="minimap-legend"></div>
+            </div>
+            
+            <div class="mb-2">
+              <div id="minimap-areas-list"></div>
+            </div>
+          </div>
+        </div>
+        <button class="list-group-item list-group-item-action" type="button" data-bs-toggle="collapse"
+          data-bs-target="#minimapControls" aria-expanded="true" aria-controls="#minimapControls">
+          <i class="bi bi-chevron-right me-2">Minimap Controls</i>
+        </button>
+        <div class="collapse show minimapControls" id="minimapControls">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="splToggle" checked>
+            <label class="form-check-label" for="splToggle">
+              Show Point Layer
+            </label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="saelToggle" checked>
+            <label class="form-check-label" for="saelToggle">
+              Show Area Extent
+            </label>
+          </div>
+          <label for="minimapPointSizeSlider" class="form-label">Minimap Point Size:</label>
+                <div class="d-flex align-items-center">
+                  <input type="range" id="minimapPointSizeSlider" class="form-range me-2" min="2.0" max="8.0" step="0.1" value="2.5">
+                  <span id="minimapPointSizeValue" class="badge bg-secondary">2.5</span>
+                </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Right Panel: Tab Navigation and Content -->
+    <button id="tabControlsTab" title="Show/hide panel" aria-label="Toggle tab panel">
+      <i class="bi bi-bar-chart-fill"></i>
+    </button>
+    <div id="tabControlsPanel">
+      <!-- Tab Navigation -->
+      <ul class="nav nav-tabs" id="minimapTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="filter-tab" data-bs-toggle="tab" data-bs-target="#filter-panel" type="button" role="tab" aria-controls="filter-panel" aria-selected="true">
+            Filter
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="details-tab" data-bs-toggle="tab" data-bs-target="#details-panel" type="button" role="tab" aria-controls="details-panel" aria-selected="false">
+            Details
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="umap-tab" data-bs-toggle="tab" data-bs-target="#umap-panel" type="button" role="tab" aria-controls="umap-panel" aria-selected="false">
+            UMAP
+          </button>
+        </li>
+      </ul>
+      
+      <!-- Tab Content -->
+      <div class="tab-content" id="minimapTabContent">
+        <!-- Filter Tab Panel -->
+        <div class="tab-pane fade show active p-3" id="filter-panel" role="tabpanel" aria-labelledby="filter-tab">
+          <div class="mb-2">
+            <label for="filterAttributeSelect" class="form-label">Filter Attribute:</label>
+            <select id="filterAttributeSelect" class="form-select form-select-sm">
+              <option value="AvgNDVI" selected>NDVI Mean</option>
+              <option value="Height">Height</option>
+            </select>
+          </div>
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" role="switch" id="fSwitch">
+            <label class="form-check-label" for="fSwitch">Filter</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="ihToggle" unchecked>
+            <label class="form-check-label" for="ihToggle">
+              Invert Histogram
+            </label>
+          </div>
+          <div id="histogram-div"></div>
+        </div>
+        
+        <!-- Details Tab Panel -->
+        <div class="tab-pane fade p-3" id="details-panel" role="tabpanel" aria-labelledby="details-tab">
+          <div id="point-details">
+            <p class="text-muted mb-2">Click on a point to view histogram details.</p>
+            <h6>NDVI Density</h6>
+            <div id="details-histogram-ndvi"></div>
+            <h6 class="mt-3">RGB Density</h6>
+            <div id="details-histogram-rgb"></div>
+          </div>
+        </div>
+        
+        <!-- UMAP Tab Panel -->
+        <div class="tab-pane fade p-3" id="umap-panel" role="tabpanel" aria-labelledby="umap-tab">
+          <div id="umap-visualization">
+            <p class="text-muted mb-2">UMAP visualization of tree centroids.</p>
+            <div class="d-flex align-items-center gap-3 mb-3">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" id="umapFSwitch">
+                <label class="form-check-label" for="umapFSwitch">Filter</label>
+              </div>
+              <button class="btn btn-sm btn-outline-primary" 
+                      id="umap-settings-toggle-btn"
+                      data-bs-toggle="collapse" 
+                      data-bs-target="#umap-settings-panel"
+                      aria-expanded="false" 
+                      aria-controls="umap-settings-panel">
+                <i class="bi bi-gear"></i> Settings
+              </button>
+            </div>
+            <div id="umap-container"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="inspector" class="position-absolute top-0 start-0 mh-100 overflow-auto"></div>
+    <!-- Color Mode Toggle Panel (left side) -->
+    <button id="toggleOptionsTab" title="Settings" aria-label="Toggle settings panel">
+      <i class="bi bi-gear-fill"></i>
+    </button>
+    <div id="toggleOptionsWrapper">
+      
+      <div id="toggleOptions" style="visibility: hidden;">
+      <div class="mb-3">
+        <div class="forestvis-title">
+          <div class="fv-name">
+            ForestVis
+            <button type="button" id="forestvisInfoButton" class="fv-info-button"
+              aria-expanded="false" aria-controls="forestvisInfo" title="About ForestVis">i</button>
+          </div>
+          <div class="fv-location">
+            Lower Teakettle (NEON TEAK)
+            <button type="button" id="datasetInfoButton" class="fv-info-button"
+              aria-expanded="false" aria-controls="datasetInfo" title="About this dataset">i</button>
+          </div>
+        </div>
+        <div id="forestvisInfo" class="fv-info" hidden>
+          <p>
+            ForestVis is an interactive visualisation of forest data derived from
+            LiDAR and multispectral imagery: explore
+            the 3D point cloud alongside a linked minimap, filter trees by their
+            attributes, and compare them in a UMAP projection.
+          </p>
+          <p class="fv-info-heading">Links</p>
+          <p>
+            Demo:
+            <a href="https://benpowley.github.io/ForestVis-Demo/" target="_blank" rel="noopener">https://benpowley.github.io/ForestVis-Demo/</a>
+            <br>
+            Source code:
+            <a href="https://github.com/BenPowley/ForestVis-Demo" target="_blank" rel="noopener">https://github.com/BenPowley/ForestVis-Demo</a>
+          </p>
+          <p class="fv-info-heading">Developers</p>
+          <p>
+            Benjamin Powley, Petra Horváth, Claudio D. G. Linhares
+          </p>
+          <p class="fv-info-heading">Paper authors</p>
+          <p>
+            Benjamin Powley, Petra Horváth, Basam Dahy, Nivan Ferreira,
+            Johan E. S. Fransson, Andreas Kerren, Claudio D. G. Linhares and
+            Amilcar Soares. <em>ForestVis: Visualization of 3D Forestry Point
+            Clouds</em>, IEEE VIS 2026.
+          </p>
+          <p class="fv-info-heading">InfraVis</p>
+          <p>
+            Node Coordinator: Andreas Kerren
+            <br>
+            Application Experts: Benjamin Powley, Petra Horváth,
+            Claudio D. G. Linhares, Reem Othman, Karen Larkina, Amilcar Soares
+            <br>
+            <a href="https://infravis.se/forestvis-visualizing-individual-tree-characteristics-in-forest-3d-point-clouds-using-remote-sensing-data/" target="_blank" rel="noopener">InfraVis project page</a>
+          </p>
+          <p class="fv-info-heading">Built with</p>
+          <p>
+            Giro3D, three.js, OpenLayers, d3, umap-js and fast-kde.
+            Licenses for these and all other third-party software are listed in
+            <a href="THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">third-party licenses</a>.
+          </p>
+        </div>
+        <div id="datasetInfo" class="fv-info" hidden>
+          <p>
+            Lower Teakettle (TEAK), Sierra Nevada, California: 300 × 300 m around
+            the NEON tower, with 3 × 3 km of surrounding forest. Flown July 2023.
+          </p>
+          <p class="fv-info-heading">Data citations</p>
+          <ul>
+            <li>NEON (National Ecological Observatory Network). Discrete return LiDAR
+              point cloud (DP1.30003.001), RELEASE-2026.
+              <a href="https://doi.org/10.48443/5ts2-rc92" target="_blank" rel="noopener">https://doi.org/10.48443/5ts2-rc92</a>.
+              Dataset accessed from
+              <a href="https://data.neonscience.org/data-products/DP1.30003.001/RELEASE-2026" target="_blank" rel="noopener">https://data.neonscience.org/data-products/DP1.30003.001/RELEASE-2026</a>
+              on October 12, 2026</li>
+            <li>NEON (National Ecological Observatory Network). High-resolution
+              orthorectified camera imagery mosaic (DP3.30010.001), RELEASE-2026.
+              <a href="https://doi.org/10.48443/8vq2-s021" target="_blank" rel="noopener">https://doi.org/10.48443/8vq2-s021</a>.
+              Dataset accessed from
+              <a href="https://data.neonscience.org/data-products/DP3.30010.001/RELEASE-2026" target="_blank" rel="noopener">https://data.neonscience.org/data-products/DP3.30010.001/RELEASE-2026</a>
+              on October 12, 2026</li>
+            <li>NEON (National Ecological Observatory Network). Spectrometer
+              orthorectified surface bidirectional reflectance - mosaic (DP3.30006.002),
+              PROVISIONAL. Data accessed from
+              <a href="https://data.neonscience.org/data-products/DP3.30006.002" target="_blank" rel="noopener">https://data.neonscience.org/data-products/DP3.30006.002</a>
+              on October 12, 2026.</li>
+          </ul>
+          <p class="fv-info-heading">Data Source Acknowledgement</p>
+          <p>
+            "This material is based in part upon work supported by the National
+            Ecological Observatory Network (NEON), a program sponsored by the U.S.
+            National Science Foundation (NSF) and operated under cooperative agreement
+            by Battelle."
+          </p>
+          <p class="fv-info-heading">Data License and Changes</p>
+          <p>
+            <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>.
+            Modified for this demo: cropped and thinned, tree instances from
+            SegmentAnyTree (Wielgosz et al., 2024), vegetation indices computed from
+            the reflectance data.
+          </p>
+          <p class="fv-info-heading" id="privacyInfo">Privacy</p>
+          <p>
+            This demo sets no cookies, stores nothing in your browser and uses no
+            analytics or tracking. Everything is served from this site except the
+            minimap background, which your browser loads from OpenStreetMap's tile
+            servers, so the OpenStreetMap Foundation can access the technical
+            information your browser sends with each request, such as your IP address,
+            browser details and the map tiles requested. Any data the OpenStreetMap
+            Foundation collects or processes is covered by the
+            <a href="https://osmfoundation.org/wiki/Privacy_Policy" target="_blank" rel="noopener">OSMF Privacy Policy</a>.
+            The site is hosted on GitHub Pages, so GitHub can access the technical
+            information your browser sends with each request, such as your IP address,
+            browser details and the pages and files requested. Any data GitHub collects
+            or processes is covered by
+            <a href="https://docs.github.com/en/site-policy" target="_blank" rel="noopener">GitHub's site policies</a>,
+            such as the
+            <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener">GitHub General Privacy Statement</a>.
+          </p>
+        </div>
+      </div>
+      <div class="mb-2">
+        <label for="colorModeSelect" class="form-label text-black" style="margin-left: 10pt">Color Mode AOI:</label>
+        <select id="colorModeSelect" class="form-select form-select-sm">
+          <!-- Options populated dynamically from attributeConfig.json -->
+        </select>
+      </div>
+
+      <!-- Collapsible Controls List -->
+      <div class="list-group">
+        <!-- AOI Controls -->
+        <button class="list-group-item list-group-item-action" type="button" data-bs-toggle="collapse" data-bs-target="#aoiControls" aria-expanded="true" aria-controls="aoiControls">
+          <i class="bi bi-chevron-right me-2"></i>AOI Controls
+        </button>
+        <div class="collapse show" id="aoiControls">
+          <div class="card card-body">
+            <div id="mainslider" class="mb-3">
+              <label for="mainPointSizeSlider" class="form-label">AOI Point Size:</label>
+              <div class="d-flex align-items-center">
+                <input type="range" id="mainPointSizeSlider" class="form-range me-2" min="0.1" max="5.0" step="0.1" value="1.0">
+                <span id="mainPointSizeValue" class="badge bg-secondary">1.0</span>
+              </div>
+            </div>
+            <div id="mainOpacity" class="mb-3">
+              <label for="mainOpacitySlider" class="form-label">AOI Opacity:</label>
+              <div class="d-flex align-items-center">
+                <input type="range" id="mainOpacitySlider" class="form-range me-2" min="0.0" max="1.0" step="0.1" value="1.0">
+                <span id="mainOpacityValue" class="badge bg-secondary">1.0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Base Controls -->
+        <button class="list-group-item list-group-item-action" type="button" data-bs-toggle="collapse" data-bs-target="#baseControls" aria-expanded="true" aria-controls="baseControls">
+          <i class="bi bi-chevron-right me-2"></i>Base Controls
+        </button>
+        <div class="collapse show" id="baseControls">
+          <div class="card card-body">
+            <div id="basePoints" class="mb-3">
+              <label for="copcPointSizeSlider" class="form-label">Base Point Size:</label>
+              <div class="d-flex align-items-center">
+                <input type="range" id="copcPointSizeSlider" class="form-range me-2" min="0.1" max="5.0" step="0.1" value="1.0">
+                <span id="copcPointSizeValue" class="badge bg-secondary">1.0</span>
+              </div>
+            </div>
+            <div id="baseOpacity" class="mb-3">
+              <label for="copcOpacitySlider" class="form-label">Base Opacity:</label>
+              <div class="d-flex align-items-center">
+                <input type="range" id="copcOpacitySlider" class="form-range me-2" min="0.0" max="1.0" step="0.1" value="1.0">
+                <span id="copcOpacityValue" class="badge bg-secondary">1.0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Rendering Controls -->
+        <button class="list-group-item list-group-item-action" type="button" data-bs-toggle="collapse" data-bs-target="#renderingControls" aria-expanded="true" aria-controls="renderingControls">
+          <i class="bi bi-chevron-right me-2"></i>Rendering Options
+        </button>
+        <div class="collapse show" id="renderingControls">
+          <div class="card card-body">
+            <div class="mb-3">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="edlToggle" checked>
+                <label class="form-check-label" for="edlToggle">
+                  Eye Dome Lighting
+                </label>
+              </div>
+            </div>
+            <div class="mb-3">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="inpaintingToggle">
+                <label class="form-check-label" for="inpaintingToggle">
+                  Inpainting
+                </label>
+              </div>
+            </div>
+            <div class="mb-3">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="occlusionToggle" checked>
+                <label class="form-check-label" for="occlusionToggle">
+                  Point Cloud Occlusion
+                </label>
+              </div>
+            </div>
+            <div class="mb-3">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="budgetToggle">
+                <label class="form-check-label" for="budgetToggle">
+                  Enable Point Budget
+                </label>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="pointBudgetSlider" class="form-label">Point Budget (millions):</label>
+              <div class="d-flex align-items-center">
+                <input type="range" id="pointBudgetSlider" class="form-range me-2" min="1" max="20" step="1" value="10">
+                <span id="pointBudgetValue" class="badge bg-secondary">10M</span>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="subdivisionThreshold" class="form-label">Subdivision Threshold:</label>
+              <div class="d-flex align-items-center">
+                <input type="range" id="subdivisionThreshold" class="form-range me-2" min="0.25" max="8.0" step="0.25" value="1.0">
+                <span id="subdivisionThresholdValue" class="badge bg-secondary">1.0</span>
+                <small class="text-muted ms-1"></small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div><!-- end toggleOptionsWrapper -->
+
+    <div id="data-attribution">
+      Data: NEON, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>
+      · <button type="button" id="datasetInfoLink">details</button>
+      · <button type="button" id="privacyInfoLink">privacy</button>
+    </div>
+    <script>
+      /* Info cards under the site name (one open at a time); the footer links open the dataset card. */
+      (function () {
+        const cards = [
+          [document.getElementById('forestvisInfo'), document.getElementById('forestvisInfoButton')],
+          [document.getElementById('datasetInfo'), document.getElementById('datasetInfoButton')],
+        ];
+        const [card] = cards[1];
+        function show(target, open) {
+          cards.forEach(([c, b]) => {
+            const isOpen = open && c === target;
+            c.hidden = !isOpen;
+            b.setAttribute('aria-expanded', String(isOpen));
+          });
+        }
+        const setOpen = (open) => show(card, open);
+        // Opens the card and scrolls `target` (inside it) into view.
+        function openCardAt(target) {
+          // The settings panel holding the card may be collapsed; open it first.
+          if (document.getElementById('toggleOptions').classList.contains('panel-hidden')) {
+            document.getElementById('toggleOptionsTab').click();
+          }
+          setOpen(true);
+          card.scrollIntoView({ block: 'nearest' });
+          if (target !== card) {
+            card.scrollTop += target.getBoundingClientRect().top - card.getBoundingClientRect().top;
+          }
+        }
+        cards.forEach(([c, b]) => b.addEventListener('click', () => show(c, c.hidden)));
+        document.getElementById('datasetInfoLink').addEventListener('click', () => openCardAt(card));
+        document.getElementById('privacyInfoLink').addEventListener('click',
+          () => openCardAt(document.getElementById('privacyInfo')));
+      })();
+    </script>
+
+    <script type="module" src="./index.js"></script>
+        <script>
+          /* Toggle minimapControlsPanel content show/hide via top tab, toggle transparency and height */
+          (function () {
+            const tab = document.getElementById('minimapPanelTab');
+            const content = document.getElementById('minimapPanelContent');
+            const panel = document.getElementById('minimapControlsPanel');
+            let panelOpen = true;
+            function applyState(open) {
+              if (open) {
+                content.classList.remove('panel-hidden');
+                panel.classList.remove('transparent-bg');
+                panel.style.height = '';
+                tab.setAttribute('title', 'Hide minimap panel');
+                tab.querySelector('i').className = 'bi bi-map-fill';
+              } else {
+                content.classList.add('panel-hidden');
+                panel.classList.add('transparent-bg');
+                panel.style.height = tab.offsetHeight + 'px';
+                tab.setAttribute('title', 'Show minimap panel');
+                tab.querySelector('i').className = 'bi bi-map-fill';
+              }
+            }
+            tab.addEventListener('click', function () {
+              panelOpen = !panelOpen;
+              applyState(panelOpen);
+            });
+            applyState(true);
+          })();
+        </script>
+    <script>
+      /* Toggle Options panel show/hide via bookmark tab */
+      (function () {
+        const tab = document.getElementById('toggleOptionsTab');
+        const panel = document.getElementById('toggleOptions');
+        const minimap = document.getElementById('minimapControlsPanel');
+        let panelOpen = true; // starts open once made visible by app init
+
+        function applyState(open) {
+          if (open) {
+            panel.classList.remove('panel-hidden');
+            minimap.classList.add('settings-open');
+            tab.setAttribute('title', 'Hide settings');
+          } else {
+            panel.classList.add('panel-hidden');
+            minimap.classList.remove('settings-open');
+            tab.setAttribute('title', 'Show settings');
+          }
+        }
+
+        tab.addEventListener('click', function () {
+          if (panel.style.visibility === 'hidden') {
+            // Panel hasn't been revealed by the app yet — nothing to do
+            return;
+          }
+          panelOpen = !panelOpen;
+          applyState(panelOpen);
+        });
+
+        // Observe when the app reveals the panel so the minimap shifts immediately
+        const observer = new MutationObserver(function () {
+          if (panel.style.visibility === 'visible') {
+            panelOpen = true;
+            applyState(true);
+          }
+        });
+        observer.observe(panel, { attributes: true, attributeFilter: ['style'] });
+      })();
+
+      /* Toggle tabControlsPanel show/hide via right tab */
+      (function () {
+        const tab = document.getElementById('tabControlsTab');
+        const panel = document.getElementById('tabControlsPanel');
+        let panelOpen = true;
+        function applyState(open) {
+          if (open) {
+            panel.classList.remove('panel-hidden');
+            tab.setAttribute('title', 'Hide panel');
+          } else {
+            panel.classList.add('panel-hidden');
+            tab.setAttribute('title', 'Show panel');
+          }
+        }
+        tab.addEventListener('click', function () {
+          panelOpen = !panelOpen;
+          applyState(panelOpen);
+        });
+        // Optionally, start open
+        applyState(true);
+      })();
+
+      /* activate popovers */
+      const popoverTriggerList = [].slice.call(
+        document.querySelectorAll('[data-bs-toggle="popover"]'),
+      );
+      popoverTriggerList.map(
+        // bootstrap is used as script in the template, disable warning about undef
+        // eslint-disable-next-line no-undef
+        (popoverTriggerEl) =>
+          new bootstrap.Popover(popoverTriggerEl, {
+            trigger: "hover",
+            placement: "left",
+            content: document.getElementById(
+              popoverTriggerEl.getAttribute("data-bs-content"),
+            ).innerHTML,
+            html: true,
+          }),
+      );
+    </script>
+  </body>
+</html>
